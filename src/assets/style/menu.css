@@ -1,0 +1,19 @@
+&& .ant-menu-item-selected {
+ background-color: rgb(51, 51, 150) !important;
+}
+
+&& .ant-menu-title-content {
+ color: #ffffff !important;
+}
+&& .ant-menu-submenu-arrow {
+ color: #ffffff !important;
+}
+
+&& .ant-menu-item {
+  background-color: #0A4D68;
+}
+
+&& .ant-menu-item:hover,
+&& .ant-menu-submenu-title:hover {
+  background-color: #0A4D68 !important;
+}
