@@ -142,7 +142,8 @@
     "shippedReports" : "Yuklangan buyurtmalar hisobi",
     "dashboardReports":  "Dashboard hisoboti",
     "startDate": "Boshlang'ich sana",
-    "endDate": "Tugash sanasi"
+    "endDate": "Tugash sanasi",
+    "tracking-list" : "Tracking List"
 
  }
 }

@@ -7,7 +7,7 @@ import "../assets/style/menu.css";
 import  {setCollapse, setSelectedPath, setOpenMiniMenu} from '../slice/mainSlice';
 import { useSelector,useDispatch } from 'react-redux';
 import { useTranslation } from 'react-i18next';
-import { MdDashboard } from 'react-icons/md';
+import { GrDeliver } from "react-icons/gr";
 
 export const Menubar = () => {
   const {t} = useTranslation()
@@ -40,7 +40,7 @@ export const Menubar = () => {
     let items = [
       {
         key: "tracking-list",
-        icon: <MdDashboard style={{ fontSize: "25px", color: "white" }} />,
+        icon: <GrDeliver style={{ fontSize: "25px", color: "white" }} />,
         label: t("tracking-list"),
       }
     ];

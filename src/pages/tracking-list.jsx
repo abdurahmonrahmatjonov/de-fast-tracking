@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useCallback, useRef } from "react";
-import {  Button } from "antd";
+import { Button } from "antd";
 import Menubar from "../components/Menu";
 import { useSelector } from "react-redux";
 import { http } from "../services/http";
@@ -21,29 +21,32 @@ const TrackingList = () => {
   const [hasMoreData, setHasMoreData] = useState(false);
   const [isEditable, setIsEditable] = useState(false);
 
-  const fetchData = useCallback(async (page) => {
-    try {
-      setLoading(true);
-      const { data } = await http.get(
-        `api/meningsotuvlarim?ownerCode=${employeId}&pageToken=${page}`
-      );
-      const formattedData = aggregateDocuments(data);
-      const maxsulotLengths = formattedData.map(
-        (entry) => entry.maxsulot && entry.maxsulot.length
-      );
-      const totalMaxsulotLength = maxsulotLengths.reduce(
-        (sum, length) => sum + (length || 0),
-        0
-      );
-      const hasMore = totalMaxsulotLength === 10;
-      setFData(formattedData);
-      setHasMoreData(hasMore);
-    } catch (error) {
-      console.error("Error fetching data:", error);
-    } finally {
-      setLoading(false);
-    }
-  }, [employeId]);
+  const fetchData = useCallback(
+    async (page) => {
+      try {
+        setLoading(true);
+        const { data } = await http.get(
+          `api/meningsotuvlarim?ownerCode=${employeId}&pageToken=${page}`
+        );
+        const formattedData = aggregateDocuments(data);
+        const maxsulotLengths = formattedData.map(
+          (entry) => entry.maxsulot && entry.maxsulot.length
+        );
+        const totalMaxsulotLength = maxsulotLengths.reduce(
+          (sum, length) => sum + (length || 0),
+          0
+        );
+        const hasMore = totalMaxsulotLength === 10;
+        setFData(formattedData);
+        setHasMoreData(hasMore);
+      } catch (error) {
+        console.error("Error fetching data:", error);
+      } finally {
+        setLoading(false);
+      }
+    },
+    [employeId]
+  );
 
   const handleNextPage = () => {
     if (hasMoreData) {
@@ -59,7 +62,6 @@ const TrackingList = () => {
 
   const toggleEdit = () => {
     setIsEditable((prevEditable) => !prevEditable);
-    // Save data when toggling edit mode
     handleSave();
   };
 
@@ -68,15 +70,31 @@ const TrackingList = () => {
       return;
     }
     const updatedData = jspreadsheetInstanceRef.current.getData();
-    console.log("Updated Data:", updatedData);
-    saveUpdatedData(updatedData);
+    console.log("All Data:", updatedData);
+
+    // Find only the rows that have been updated
+    const updatedRows = updatedData
+      .map((row, index) => {
+        const originalRow = fdata[index];
+        if (!isEqual(row, originalRow)) {
+          return { ...row, id: originalRow.id }; // Assuming there's an ID field
+        }
+        return null;
+      })
+      .filter((row) => row !== null);
+
+    console.log("Updated Rows:", updatedRows);
+    saveUpdatedData(updatedRows);
   };
 
   const saveUpdatedData = async (data) => {
     try {
       setLoading(true);
-      const response = await http.post("api/saveData", { data });
-      console.log("Save response:", response.data);
+      if (isEditable) {
+        const response = await http.post("api/saveData", { data });
+        console.log("Save response:", response.data);
+      }
+      setFData(data);
     } catch (error) {
       console.error("Error saving data:", error);
     } finally {
@@ -92,7 +110,9 @@ const TrackingList = () => {
     const tableData = fdata.map((item) => ({
       ...item,
       maxsulot: item.maxsulot ? item.maxsulot.join(", ") : "",
-      sana: item.sana ? moment(item.sana, "DD.MM.YYYY").format("DD.MM.YYYY, HH:mm:ss") : "",
+      sana: item.sana
+        ? moment(item.sana, "DD.MM.YYYY").format("DD.MM.YYYY")
+        : "",
     }));
 
     if (spreadsheetRef.current && tableData.length > 0) {
@@ -102,20 +122,37 @@ const TrackingList = () => {
 
       const jSpreadsheetOptions = {
         data: tableData.map((row) =>
-          Object.values(row).map((value) => value || "")
+          Object.values(row).map((value) => value || ""),
         ),
         columns: Object.keys(tableData[0] || {}).map((key) => ({
           type: "text",
           title: key,
-          width: 150,
+          width: 250,
         })),
-        minDimensions: [Object.keys(tableData[0] || {}).length, tableData.length],
+        minDimensions: [
+          Object.keys(tableData[0] || {}).length,
+          tableData.length,
+        ],
         editable: isEditable,
+        allowInsertRow: false,
+        allowManualInsertRow: false,
+        allowInsertColumn: false,
+        allowManualInsertColumn: false,
+        allowDeleteRow: false,
+        allowDeleteColumn: false,
       };
 
-      jspreadsheetInstanceRef.current = jspreadsheet(spreadsheetRef.current, jSpreadsheetOptions);
+      jspreadsheetInstanceRef.current = jspreadsheet(
+        spreadsheetRef.current,
+        jSpreadsheetOptions
+      );
     }
   }, [fdata, isEditable]);
+
+  // Custom function to deep compare objects
+  const isEqual = (obj1, obj2) => {
+    return JSON.stringify(obj1) === JSON.stringify(obj2);
+  };
 
   return (
     <div className="flex h-full w-full overflow-y-auto">
@@ -123,7 +160,7 @@ const TrackingList = () => {
       <div className="h-screen w-full overflow-y-auto">
         <Navbar />
         <h1 className="font-poppins ml-4 mt-10 text-xl font-bold text-black sm:ml-10 sm:mt-14 sm:text-2xl">
-          {t("MySales")}
+          {t("tracking-list")}
         </h1>
         <div className="mt-10 w-full border-[1px] border-[#E8E8E8] sm:mt-14"></div>
         <div className="ml-4 mt-6 sm:ml-10 sm:mt-10">
@@ -155,7 +192,7 @@ const TrackingList = () => {
             {isEditable ? t("Save") : t("Edit")}
           </Button>
           <div className="overflow-auto">
-            <div ref={spreadsheetRef} className="w-full h-[500px]"></div>
+            <div ref={spreadsheetRef} className="h-[500px] w-full"></div>
           </div>
         </div>
       </div>
