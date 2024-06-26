@@ -1,6 +1,5 @@
 import React, { useState, useEffect, useCallback, useRef, useMemo } from "react";
 import { Button, message } from "antd";
-import Menubar from "../components/Menu";
 import { useSelector } from "react-redux";
 import { http } from "../services/http";
 import { useTranslation } from "react-i18next";
@@ -169,7 +168,6 @@ const TrackingList = () => {
 
   return (
     <div className="flex h-full w-full overflow-y-auto">
-      <Menubar />
       <div className="h-screen w-full overflow-y-auto">
         <Navbar />
         <h1 className="font-poppins ml-4 mt-10 text-xl font-bold text-black sm:ml-10 sm:mt-14 sm:text-2xl">

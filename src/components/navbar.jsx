@@ -7,6 +7,8 @@ import { logout } from "../slice/mainSlice";
 import { useTranslation } from "react-i18next";
 import { Select } from "antd";
 import Flag from "react-world-flags";
+import logo from "../assets/images/Union (1).png";
+
 
 const { Option } = Select;
 
@@ -36,7 +38,9 @@ const Navbar = () => {
   };
 
   return (
-    <div className="relative flex h-[80px] w-full items-center justify-end gap-4 bg-[#FFFFFF] pr-10 drop-shadow-xl">
+    <div className="relative flex h-[80px] w-full items-center justify-between  bg-[#FFFFFF] pr-10 drop-shadow-xl">
+        <img src={logo} alt="logo" className="h-[30px] ml-8" />
+    <div className="relative flex h-[80px] w-full items-center justify-end gap-4 ">
       <Select
         className=" w-32 ml-5"
         defaultValue={i18n.language}
@@ -88,6 +92,7 @@ const Navbar = () => {
           <FaSignOutAlt />
         </button>
       )}
+    </div>
     </div>
   );
 };
