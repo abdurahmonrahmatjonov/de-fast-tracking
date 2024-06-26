@@ -118,6 +118,7 @@ const TrackingList = () => {
       setSaving(false);
     }
   };
+  
 
   useEffect(() => {
     fetchData(currentPage);

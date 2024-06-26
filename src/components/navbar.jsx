@@ -38,7 +38,7 @@ const Navbar = () => {
   };
 
   return (
-    <div className="relative flex h-[80px] w-full items-center justify-between  bg-[#FFFFFF] pr-10 drop-shadow-xl">
+    <div className="relative flex h-[80px] w-full items-center justify-between  bg-[#FFFFFF] pr-10 drop-shadow-xl ">
         <img src={logo} alt="logo" className="h-[30px] ml-8" />
     <div className="relative flex h-[80px] w-full items-center justify-end gap-4 ">
       <Select
