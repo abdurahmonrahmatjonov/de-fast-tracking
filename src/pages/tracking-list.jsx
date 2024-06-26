@@ -23,7 +23,7 @@ const TrackingList = () => {
   const [hasMoreData, setHasMoreData] = useState(false);
   const [isEditable, setIsEditable] = useState(false);
   const [saving, setSaving] = useState(false);
-
+  const [rowStatuses, setRowStatuses] = useState({});
 
   const columnDefinitions = useMemo(
     () => [
@@ -39,9 +39,7 @@ const TrackingList = () => {
     async (page) => {
       try {
         setLoading(true);
-        const { data } = await http.get(
-          `api/meningsotuvlarim?ownerCode=${employeId}&pageToken=${page}`
-        );
+        const { data } = await http.get(`api/meningsotuvlarim?ownerCode=${employeId}&pageToken=${page}`);
         const formattedData = aggregateDocuments(data);
         const maxsulotLengths = formattedData.map(
           (entry) => entry.maxsulot && entry.maxsulot.length
@@ -51,7 +49,12 @@ const TrackingList = () => {
           0
         );
         const hasMore = totalMaxsulotLength === 10;
-        setFData(formattedData);
+        setFData(
+          formattedData.map((item, index) => ({
+            ...item,
+            _tempId: item.id || `temp_${index}`,
+          }))
+        );
         setHasMoreData(hasMore);
       } catch (error) {
         console.error("Error fetching data:", error);
@@ -87,14 +90,18 @@ const TrackingList = () => {
       return;
     }
     const updatedData = jspreadsheetInstanceRef.current.getData();
-    console.log("All Data:", updatedData);
 
     const updatedRows = updatedData
       .map((row, index) => {
         const originalRow = fdata[index];
-        if (!isEqual(row, originalRow)) {
-          console.log(true);
-          return { ...row, id: originalRow.id };
+        if (!originalRow) {
+          return null;
+        }
+        const updatedRow = {
+          ...originalRow,
+        };
+        if (!isEqual(updatedRow, originalRow)) {
+          return { ...updatedRow, _tempId: originalRow._tempId };
         }
         return null;
       })
@@ -105,12 +112,25 @@ const TrackingList = () => {
   };
 
   const saveUpdatedData = async (data) => {
+    const statuses = { ...rowStatuses };
     try {
       setSaving(true);
-      const response = await http.post("api/saveData", { data });
-      console.log("Save response:", response.data);
+      for (let i = 0; i < data.length; i++) {
+        const rowData = data[i];
+        try {
+          const response = await http.post("api/saveData", { data: rowData });
+          console.log("Save response:", response.data);
+          statuses[rowData._tempId] = "success";
+          message.success(t("Data saved successfully"));
+        } catch (error) {
+          console.error("Error saving data:", error);
+          message.error(t("Error saving data"));
+          statuses[rowData._tempId] = "error";
+        }
+      }
       setFData(data);
-      message.success(t("Data saved successfully"));
+      setRowStatuses(statuses);
+      console.log(statuses)
     } catch (error) {
       console.error("Error saving data:", error);
       message.error(t("Error saving data"));
@@ -118,7 +138,6 @@ const TrackingList = () => {
       setSaving(false);
     }
   };
-  
 
   useEffect(() => {
     fetchData(currentPage);
@@ -127,10 +146,8 @@ const TrackingList = () => {
   useEffect(() => {
     const tableData = fdata.map((item) => ({
       ...item,
-      maxsulot: item.maxsulot ? item.maxsulot.join(", ") : "",
-      sana: item.sana
-        ? moment(item.sana, "DD.MM.YYYY").format("DD.MM.YYYY")
-        : "",
+      maxsulot: item.maxsulot,
+      sana: item.sana,
     }));
 
     if (spreadsheetRef.current && tableData.length > 0) {
@@ -184,14 +201,14 @@ const TrackingList = () => {
               <Button
                 onClick={handlePreviousPage}
                 disabled={currentPage === 1}
-                className="h-[40px] w-[100px] rounded-2xl bg-gray-300 text-gray-700 disabled:bg-gray-200 disabled:text-gray-400 sm:w-[100px]"
+                className={`h-[40px] w-[100px] rounded-2xl bg-gray-300 text-gray-700 disabled:bg-gray-200 disabled:text-gray-400 sm:w-[100px]`}
               >
                 {t("previous")}
               </Button>
               <Button
                 onClick={handleNextPage}
                 disabled={!hasMoreData}
-                className="h-[40px] w-[100px] rounded-2xl bg-[#0A4D68] text-white disabled:bg-gray-200 disabled:text-gray-400 sm:w-[100px]"
+                className={`h-[40px] w-[100px] rounded-2xl bg-[#0A4D68] text-white disabled:bg-gray-200 disabled:text-gray-400 sm:w-[100px]`}
               >
                 {t("next")}
               </Button>
@@ -211,8 +228,6 @@ const TrackingList = () => {
                 height={40}
                 width={40}
                 color="#0000ff"
-                wrapperStyle={{}}
-                wrapperClass=""
                 visible={true}
                 ariaLabel="oval-loading"
                 secondaryColor="#0000ff"
@@ -221,7 +236,7 @@ const TrackingList = () => {
               />
             </div>
           ) : (
-            <div className="overflow-auto">
+            <div className="overflow-auto flex">
               <div ref={spreadsheetRef} className="h-max w-full"></div>
             </div>
           )}
