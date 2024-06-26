@@ -1,5 +1,5 @@
-import React, { useState, useEffect, useCallback, useRef } from "react";
-import { Button } from "antd";
+import React, { useState, useEffect, useCallback, useRef, useMemo } from "react";
+import { Button, message } from "antd";
 import Menubar from "../components/Menu";
 import { useSelector } from "react-redux";
 import { http } from "../services/http";
@@ -9,17 +9,32 @@ import moment from "moment";
 import "jspreadsheet-ce/dist/jspreadsheet.css";
 import jspreadsheet from "jspreadsheet-ce";
 import Navbar from "../components/navbar";
+import { Oval } from "react-loader-spinner";
 
 const TrackingList = () => {
   const employeId = useSelector((state) => state.main.employeeId);
+
   const { t } = useTranslation();
   const spreadsheetRef = useRef(null);
   const jspreadsheetInstanceRef = useRef(null);
+
   const [fdata, setFData] = useState([]);
-  const [_, setLoading] = useState(true);
+  const [loading, setLoading] = useState(true);
   const [currentPage, setCurrentPage] = useState(1);
   const [hasMoreData, setHasMoreData] = useState(false);
   const [isEditable, setIsEditable] = useState(false);
+  const [saving, setSaving] = useState(false);
+
+
+  const columnDefinitions = useMemo(
+    () => [
+      { type: "text", title: t("item"), width: 250 },
+      { type: "text", title: t("date"), width: 250 },
+      { type: "text", title: t("whs"), width: 250 },
+      { type: "text", title: t("name"), width: 250 },
+    ],
+    [t]
+  );
 
   const fetchData = useCallback(
     async (page) => {
@@ -41,11 +56,12 @@ const TrackingList = () => {
         setHasMoreData(hasMore);
       } catch (error) {
         console.error("Error fetching data:", error);
+        message.error(t("Error fetching data"));
       } finally {
         setLoading(false);
       }
     },
-    [employeId]
+    [employeId, t]
   );
 
   const handleNextPage = () => {
@@ -62,43 +78,45 @@ const TrackingList = () => {
 
   const toggleEdit = () => {
     setIsEditable((prevEditable) => !prevEditable);
-    handleSave();
+    if (isEditable) {
+      handleSave();
+    }
   };
 
-  const handleSave = () => {
+  const handleSave = async () => {
     if (!jspreadsheetInstanceRef.current) {
       return;
     }
     const updatedData = jspreadsheetInstanceRef.current.getData();
     console.log("All Data:", updatedData);
 
-    // Find only the rows that have been updated
     const updatedRows = updatedData
       .map((row, index) => {
         const originalRow = fdata[index];
         if (!isEqual(row, originalRow)) {
-          return { ...row, id: originalRow.id }; // Assuming there's an ID field
+          console.log(true);
+          return { ...row, id: originalRow.id };
         }
         return null;
       })
       .filter((row) => row !== null);
 
     console.log("Updated Rows:", updatedRows);
-    saveUpdatedData(updatedRows);
+    await saveUpdatedData(updatedRows);
   };
 
   const saveUpdatedData = async (data) => {
     try {
-      setLoading(true);
-      if (isEditable) {
-        const response = await http.post("api/saveData", { data });
-        console.log("Save response:", response.data);
-      }
+      setSaving(true);
+      const response = await http.post("api/saveData", { data });
+      console.log("Save response:", response.data);
       setFData(data);
+      message.success(t("Data saved successfully"));
     } catch (error) {
       console.error("Error saving data:", error);
+      message.error(t("Error saving data"));
     } finally {
-      setLoading(false);
+      setSaving(false);
     }
   };
 
@@ -122,15 +140,11 @@ const TrackingList = () => {
 
       const jSpreadsheetOptions = {
         data: tableData.map((row) =>
-          Object.values(row).map((value) => value || ""),
+          Object.values(row).map((value) => value || "")
         ),
-        columns: Object.keys(tableData[0] || {}).map((key) => ({
-          type: "text",
-          title: key,
-          width: 250,
-        })),
+        columns: columnDefinitions,
         minDimensions: [
-          Object.keys(tableData[0] || {}).length,
+          columnDefinitions.length,
           tableData.length,
         ],
         editable: isEditable,
@@ -147,9 +161,8 @@ const TrackingList = () => {
         jSpreadsheetOptions
       );
     }
-  }, [fdata, isEditable]);
+  }, [columnDefinitions, fdata, isEditable, t]);
 
-  // Custom function to deep compare objects
   const isEqual = (obj1, obj2) => {
     return JSON.stringify(obj1) === JSON.stringify(obj2);
   };
@@ -187,13 +200,32 @@ const TrackingList = () => {
           </div>
           <Button
             onClick={toggleEdit}
-            className="mb-4 bg-blue-500 text-white hover:bg-blue-700"
+            className={`mb-4 ${isEditable ? "bg-green-500" : "bg-blue-500"} text-white hover:bg-green-700`}
+            loading={saving}
           >
             {isEditable ? t("Save") : t("Edit")}
           </Button>
-          <div className="overflow-auto">
-            <div ref={spreadsheetRef} className="h-[500px] w-full"></div>
-          </div>
+
+          {loading ? (
+            <div className="mt-20 flex items-center justify-center">
+              <Oval
+                height={40}
+                width={40}
+                color="#0000ff"
+                wrapperStyle={{}}
+                wrapperClass=""
+                visible={true}
+                ariaLabel="oval-loading"
+                secondaryColor="#0000ff"
+                strokeWidth={2}
+                strokeWidthSecondary={2}
+              />
+            </div>
+          ) : (
+            <div className="overflow-auto">
+              <div ref={spreadsheetRef} className="h-max w-full"></div>
+            </div>
+          )}
         </div>
       </div>
     </div>
