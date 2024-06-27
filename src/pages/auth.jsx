@@ -22,7 +22,10 @@ const Auth = () => {
   const [loading, setLoading] = useState(false);
   const [isMeLoading, setMeLoading] = useState(true);
 
-  const fetchData = async () => {
+
+
+  useEffect(() => {
+     const fetchData = async () => {
     try {
       const { data } = await http.get("api/auth/me");
       if (data) {
@@ -52,10 +55,8 @@ const Auth = () => {
       setMeLoading(false);
     }
   };
-
-  useEffect(() => {
     fetchData();
-  }, []);
+  },[dispatch, navigate]);
 
   const handleSubmit = async (values) => {
     const { email, password } = values;
