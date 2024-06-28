@@ -19,7 +19,7 @@ const RoutesComponent = () => {
   return (
     <Routes>
       <Route
-        path="/"
+        path="*"
         element={
           <Navigate to={isAuthenticated ? "/tracking-list" : "/auth"} replace />
         }

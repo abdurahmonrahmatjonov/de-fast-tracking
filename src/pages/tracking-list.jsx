@@ -1,4 +1,10 @@
-import React, { useState, useEffect, useCallback, useRef, useMemo } from "react";
+import React, {
+  useState,
+  useEffect,
+  useCallback,
+  useRef,
+  useMemo,
+} from "react";
 import { Button, message } from "antd";
 import { useSelector } from "react-redux";
 import { http } from "../services/http";
@@ -7,7 +13,7 @@ import { aggregateDocuments } from "../utils/document";
 import moment from "moment";
 import "jspreadsheet-ce/dist/jspreadsheet.css";
 import jspreadsheet from "jspreadsheet-ce";
-import Navbar from "../components/navbar";
+import Navbar from "../components/Navbar";
 import { Oval } from "react-loader-spinner";
 
 const TrackingList = () => {
@@ -24,15 +30,15 @@ const TrackingList = () => {
   const [isEditable, setIsEditable] = useState(false);
   const [saving, setSaving] = useState(false);
 
-
   const columnDefinitions = useMemo(
     () => [
       { type: "text", title: t("item"), width: 250 },
       { type: "text", title: t("date"), width: 250 },
       { type: "text", title: t("whs"), width: 250 },
       { type: "text", title: t("name"), width: 250 },
+      { type: "text", title: t("status"), width: 100 }, // Added status column
     ],
-    [t]
+    [t],
   );
 
   const fetchData = useCallback(
@@ -40,15 +46,15 @@ const TrackingList = () => {
       try {
         setLoading(true);
         const { data } = await http.get(
-          `api/meningsotuvlarim?ownerCode=${employeId}&pageToken=${page}`
+          `api/meningsotuvlarim?ownerCode=${employeId}&pageToken=${page}`,
         );
         const formattedData = aggregateDocuments(data);
         const maxsulotLengths = formattedData.map(
-          (entry) => entry.maxsulot && entry.maxsulot.length
+          (entry) => entry.maxsulot && entry.maxsulot.length,
         );
         const totalMaxsulotLength = maxsulotLengths.reduce(
           (sum, length) => sum + (length || 0),
-          0
+          0,
         );
         const hasMore = totalMaxsulotLength === 10;
         setFData(formattedData);
@@ -60,7 +66,7 @@ const TrackingList = () => {
         setLoading(false);
       }
     },
-    [employeId, t]
+    [employeId, t],
   );
 
   const handleNextPage = () => {
@@ -93,7 +99,6 @@ const TrackingList = () => {
       .map((row, index) => {
         const originalRow = fdata[index];
         if (!isEqual(row, originalRow)) {
-          console.log(true);
           return { ...row, id: originalRow.id };
         }
         return null;
@@ -105,20 +110,29 @@ const TrackingList = () => {
   };
 
   const saveUpdatedData = async (data) => {
-    try {
-      setSaving(true);
-      const response = await http.post("api/saveData", { data });
-      console.log("Save response:", response.data);
-      setFData(data);
-      message.success(t("Data saved successfully"));
-    } catch (error) {
-      console.error("Error saving data:", error);
-      message.error(t("Error saving data"));
-    } finally {
-      setSaving(false);
+    setSaving(true);
+    const newFData = [...fdata];
+    for (const row of data) {
+      try {
+        const response = await http.post("api/saveData", { data: row });
+        console.log("Save response:", response.data);
+        const rowIndex = newFData.findIndex((item) => item.id === row.id);
+        if (rowIndex > -1) {
+          newFData[rowIndex] = { ...newFData[rowIndex], status: '✅' }; // Update the data with the saved row and status
+        }
+        message.success(t("Data saved successfully"));
+      } catch (error) {
+        console.error("Error saving data:", error);
+        const rowIndex = newFData.findIndex((item) => item.id === row.id);
+        if (rowIndex > -1) {
+          newFData[rowIndex] = { ...newFData[rowIndex], status: '🚫' }; // Update the data with error status
+        }
+        message.error(t("Error saving data"));
+      }
+      setFData([...newFData]); // Update state with all the data
     }
+    setSaving(false);
   };
-
 
   useEffect(() => {
     fetchData(currentPage);
@@ -131,6 +145,7 @@ const TrackingList = () => {
       sana: item.sana
         ? moment(item.sana, "DD.MM.YYYY").format("DD.MM.YYYY")
         : "",
+      status: item.status || "", // Include status in table data
     }));
 
     if (spreadsheetRef.current && tableData.length > 0) {
@@ -140,13 +155,10 @@ const TrackingList = () => {
 
       const jSpreadsheetOptions = {
         data: tableData.map((row) =>
-          Object.values(row).map((value) => value || "")
+          Object.values(row).map((value) => value || ""),
         ),
         columns: columnDefinitions,
-        minDimensions: [
-          columnDefinitions.length,
-          tableData.length,
-        ],
+        minDimensions: [columnDefinitions.length, tableData.length],
         editable: isEditable,
         allowInsertRow: false,
         allowManualInsertRow: false,
@@ -158,7 +170,7 @@ const TrackingList = () => {
 
       jspreadsheetInstanceRef.current = jspreadsheet(
         spreadsheetRef.current,
-        jSpreadsheetOptions
+        jSpreadsheetOptions,
       );
     }
   }, [columnDefinitions, fdata, isEditable, t]);
@@ -202,7 +214,7 @@ const TrackingList = () => {
             className={`mb-4 ${isEditable ? "bg-green-500" : "bg-blue-500"} text-white hover:bg-green-700`}
             loading={saving}
           >
-            {isEditable ? t("Save") : t("Edit")}
+            {isEditable ? t("save") : t("edit")}
           </Button>
 
           {loading ? (

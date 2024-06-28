@@ -1,4 +1,4 @@
-import Navbar from "./navbar";
+import Navbar from "./Navbar";
 import { useTranslation } from "react-i18next";
 import { Table } from "antd";
 
@@ -59,22 +59,22 @@ function Header({
           </div>
         )}
 
-        <div >
-      <Table
-        columns={columns}
-        dataSource={fdata}
-        pagination={false}
-        className="mt-6 w-full sm:mt-10"
-        rowKey="zakaz"
-        sticky={true}
-        loading={loading}
-        {...(handleRowClick && {
-          onRow: (record) => ({
-            onClick: () => handleRowClick(record),
-          }),
-        })}
-      />
-      </div>
+        <div>
+          <Table
+            columns={columns}
+            dataSource={fdata}
+            pagination={false}
+            className="mt-6 w-full sm:mt-10"
+            rowKey="zakaz"
+            sticky={true}
+            loading={loading}
+            {...(handleRowClick && {
+              onRow: (record) => ({
+                onClick: () => handleRowClick(record),
+              }),
+            })}
+          />
+        </div>
       </div>
     </div>
   );
