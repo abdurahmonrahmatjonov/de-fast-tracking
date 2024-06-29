@@ -26,20 +26,20 @@ const TrackingList = () => {
 
   const columnDefinitions = useMemo(
     () => [
-      { type: "text", title: t("item"), width: 250, editable: true },
-      { type: "hidden", title: t("docEntry"), width: 250, editable: false },
-      { type: "hidden", title: t("cardCode"), width: 250, editable: false },
-      { type: "text", title: t("name"), width: 250, editable: false },
-      { type: "text", title: t("status"), width: 100, editable: isEditable },
-      { type: "text", title: t("anotherStatus1"), width: 100, editable: isEditable },
-      { type: "text", title: t("anotherStatus2"), width: 100, editable: isEditable },
-      { type: "text", title: t("anotherStatus3"), width: 100, editable: isEditable },
-      { type: "text", title: t("anotherStatus4"), width: 100, editable: isEditable },
-      { type: "text", title: t("anotherStatus5"), width: 100, editable: isEditable },
-      { type: "text", title: t("anotherStatus6"), width: 100, editable: isEditable },
-      { type: "text", title: t("anotherStatus7"), width: 100, editable: isEditable },
-      { type: "text", title: t("anotherStatus8"), width: 100, editable: isEditable },
-      { type: "text", title: t("anotherStatus9"), width: 100, editable: isEditable },
+      { type: "text", title: t("item"), width: 250,readOnly:true },
+      { type: "hidden", title: t("docEntry"), width: 250,readOnly: true },
+      { type: "hidden", title: t("cardCode"), width: 250,readOnly: true },
+      { type: "text", title: t("name"), width: 250,readOnly: true },
+      { type: "text", title: t("status"), width: 100, readOnly: !isEditable },
+      { type: "text", title: t("anotherStatus1"), width: 100, readOnly: !isEditable },
+      { type: "text", title: t("anotherStatus2"), width: 100, readOnly: !isEditable },
+      { type: "text", title: t("anotherStatus3"), width: 100, readOnly: !isEditable },
+      { type: "text", title: t("anotherStatus4"), width: 100, readOnly: !isEditable },
+      { type: "text", title: t("anotherStatus5"), width: 100, readOnly: !isEditable },
+      { type: "text", title: t("anotherStatus6"), width: 100, readOnly: !isEditable },
+      { type: "text", title: t("anotherStatus7"), width: 100, readOnly: !isEditable },
+      { type: "text", title: t("anotherStatus8"), width: 100, readOnly: !isEditable },
+      { type: "text", title: t("anotherStatus9"), width: 100, readOnly: !isEditable },
     ],
     [t, isEditable]
   );
@@ -127,11 +127,7 @@ const TrackingList = () => {
     setSaving(false);
   };
 
-  useEffect(() => {
-    fetchData();
-  }, [fetchData]);
-
-  useEffect(() => {
+  const initializeSpreadsheet = useCallback(() => {
     const tableData = fdata.map((item) => ({
       ...item,
     }));
@@ -160,7 +156,15 @@ const TrackingList = () => {
         jSpreadsheetOptions
       );
     }
-  }, [columnDefinitions, fdata, isEditable, t]);
+  }, [columnDefinitions, fdata]);
+
+  useEffect(() => {
+    fetchData();
+  }, [fetchData]);
+
+  useEffect(() => {
+    initializeSpreadsheet();
+  }, [initializeSpreadsheet, isEditable, t]);
 
   const isEqual = (obj1, obj2) => {
     return JSON.stringify(obj1) === JSON.stringify(obj2);
