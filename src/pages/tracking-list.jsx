@@ -13,6 +13,8 @@ import jspreadsheet from "jspreadsheet-ce";
 import Navbar from "../components/Navbar";
 import { Oval } from "react-loader-spinner";
 import { formatData } from "../utils/document";
+import moment from "moment"
+
 
 const TrackingList = () => {
   const { t } = useTranslation();
@@ -26,20 +28,20 @@ const TrackingList = () => {
 
   const columnDefinitions = useMemo(
     () => [
-      { type: "text", title: t("item"), width: 250,readOnly:true },
+      { type: "text", title: t("docNum"), width: 250,readOnly:true },
       { type: "hidden", title: t("docEntry"), width: 250,readOnly: true },
       { type: "hidden", title: t("cardCode"), width: 250,readOnly: true },
-      { type: "text", title: t("name"), width: 250,readOnly: true },
-      { type: "text", title: t("status"), width: 100, readOnly: !isEditable },
-      { type: "text", title: t("anotherStatus1"), width: 100, readOnly: !isEditable },
-      { type: "text", title: t("anotherStatus2"), width: 100, readOnly: !isEditable },
-      { type: "text", title: t("anotherStatus3"), width: 100, readOnly: !isEditable },
-      { type: "text", title: t("anotherStatus4"), width: 100, readOnly: !isEditable },
-      { type: "text", title: t("anotherStatus5"), width: 100, readOnly: !isEditable },
-      { type: "text", title: t("anotherStatus6"), width: 100, readOnly: !isEditable },
-      { type: "text", title: t("anotherStatus7"), width: 100, readOnly: !isEditable },
-      { type: "text", title: t("anotherStatus8"), width: 100, readOnly: !isEditable },
-      { type: "text", title: t("anotherStatus9"), width: 100, readOnly: !isEditable },
+      { type: "text", title: t("cardName"), width: 250,readOnly: true },
+      { type: "text", title: t("u_numberOfCntr"), width: 150, readOnly: !isEditable },
+      { type: "text", title: t("u_China_platform"), width: 150, readOnly: !isEditable },
+      { type: "text", title: t("u_numberPlatformKzx"), width: 150, readOnly: !isEditable },
+      { type: "text", title: t("u_StationOfOperationRailway"), width: 200, readOnly: !isEditable },
+      { type: "text", title: t("u_DateOfOperation"), width: 150, readOnly: !isEditable },
+      { type: "text", title: t("u_LineOfOperation"), width: 150, readOnly: !isEditable },
+      { type: "text", title: t("u_DestinationStation"), width: 200, readOnly: !isEditable },
+      { type: "text", title: t("u_Remaining_km"), width: 230, readOnly: !isEditable },
+      { type: "text", title: t("u_DispatchPlan"), width: 200, readOnly: !isEditable },
+      { type: "text", title: t("u_DateSending"), width: 150, readOnly: !isEditable },
     ],
     [t, isEditable]
   );
@@ -85,6 +87,7 @@ const TrackingList = () => {
 
     console.log("Updated Rows:", updatedRows);
     await saveUpdatedData(updatedRows);
+    fetchData()
   };
 
   const saveUpdatedData = async (data) => {
@@ -94,19 +97,19 @@ const TrackingList = () => {
     const mapRowToPatchData = (row) => {
       return {
         docNum: row[0],
-        docEntry: row[1], // Assuming hidden fields are at the end
-        cardCode: row[2], // Assuming hidden fields are at the end
+        docEntry: row[1],
+        cardCode: row[2],
         cardName: row[3],
         u_numberOfCntr: row[4],
         u_China_platform: row[5],
         u_numberPlatformKzx: row[6],
         u_StationOfOperationRailway: row[7],
-        u_DateOfOperation: row[8],
+        u_DateOfOperation:  moment(row[8], "DD.MM.YYYY").format("YYYY-MM-DD"),
         u_LineOfOperation: row[9],
         u_DestinationStation: row[10],
         u_Remaining_km: row[11],
-        u_DispatchPlan: row[12],
-        u_DateSending: row[13],
+        u_DispatchPlan:  moment(row[12], "DD.MM.YYYY").format("YYYY-MM-DD"),
+        u_DateSending:  moment(row[13], "DD.MM.YYYY").format("YYYY-MM-DD"),
       };
     };
 
@@ -116,10 +119,10 @@ const TrackingList = () => {
       try {
         const response = await http.patch("api/trackings", patchData);
         console.log("Save response:", response.data);
-        message.success(t("Data saved successfully"));
+        message.success(t("Data saved successfully ") + row[0]);
       } catch (error) {
         console.error("Error saving data:", error);
-        message.error(t("Error saving data"));
+        message.error(t("Error saving data ") + row[0]);
       }
     }
 

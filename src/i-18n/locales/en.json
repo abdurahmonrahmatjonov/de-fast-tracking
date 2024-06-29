@@ -31,7 +31,6 @@
     "clients": "Clients",
     "phoneNum": "Phone Number",
     "cardType": "Client Type",
-    "cardName": "Client Name",
     "cardCode": "Client Code",
     "currency": "Currency",
     "Sales": "Sales",
@@ -144,6 +143,19 @@
  "shippedReports" : "Shipped Orders Report",
  "dashboardReports": "Dashboard Report",
  "startDate": "Start Date",
- "endDate": "End Date"
+ "endDate": "End Date",
+ "tracking-list" : "Tracking List",
+ "docNum" : "№ документа",
+ "cardName" : "Имя клента",
+ "u_numberOfCntr" : "№ контейнера",
+ "u_China_platform" : "China platform",
+ "u_numberPlatformKzx" : "№ платформа КЗХ",
+ "u_StationOfOperationRailway" : "Станция операции ж.д",
+ "u_DateOfOperation" : "Дата операции",
+ "u_LineOfOperation"  : "Операция",
+ "u_DestinationStation" : "Станция назначения",
+ "u_Remaining_km" : "Остаточное расстояние, км",
+ "u_DispatchPlan" : "Расчетный срок доставки",
+ "u_DateSending"  :"Дата отправки"
   }
 }

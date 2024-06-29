@@ -27,7 +27,6 @@
    "clients": "Mijozlar",
    "phoneNum": "Telefon nomer",
    "cardType": "Mijoz turlari",
-   "cardName": "Mijoz nomi",
    "cardCode": "Mijoz kodi",
    "currency": "Valyuta",
    "save": "Saqlash",
@@ -143,7 +142,19 @@
     "dashboardReports":  "Dashboard hisoboti",
     "startDate": "Boshlang'ich sana",
     "endDate": "Tugash sanasi",
-    "tracking-list" : "Tracking List"
+    "tracking-list" : "Tracking List",
+    "docNum" : "№ документа",
+    "cardName" : "Имя клента",
+    "u_numberOfCntr" : "№ контейнера",
+    "u_China_platform" : "China platform",
+    "u_numberPlatformKzx" : "№ платформа КЗХ",
+    "u_StationOfOperationRailway" : "Станция операции ж.д",
+    "u_DateOfOperation" : "Дата операции",
+    "u_LineOfOperation"  : "Операция",
+    "u_DestinationStation" : "Станция назначения",
+    "u_Remaining_km" : "Остаточное расстояние, км",
+    "u_DispatchPlan" : "Расчетный срок доставки:",
+    "u_DateSending"  :"Дата отправки"
 
  }
 }

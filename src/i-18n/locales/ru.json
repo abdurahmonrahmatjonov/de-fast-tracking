@@ -30,7 +30,6 @@
    "clients": "Клиенты",
    "phoneNum": "Номер телефона",
    "cardType": "Тип клиентa",
-   "cardName": "Название клиентa",
    "cardCode": "Код клиентa",
    "currency": "Валюта",
    "save": "Сохранить",
@@ -83,7 +82,6 @@
    "dashboard": "Основной",
    "stockTransferlines": "Перемешение товаров",
    "inputPrice":  "Пожалуйста, укажите цену товара!",
-
    "order": "Заказ",
    "fullname": "ФИО",
    "debit": "Долг",
@@ -143,7 +141,20 @@
  "shippedReports" : "Отчет об отправленных заказах",
  "dashboardReports": "Отчет панели мониторинга",
  "startDate": "Дата начала",
- "endDate": "Дата окончания"
+ "endDate": "Дата окончания",
+ "tracking-list" : "Tracking List",
+ "docNum" : "№ документа",
+ "cardName" : "Имя клента",
+ "u_numberOfCntr" : "№ контейнера",
+ "u_China_platform" : "China platform",
+ "u_numberPlatformKzx" : "№ платформа КЗХ",
+ "u_StationOfOperationRailway" : "Станция операции ж.д",
+ "u_DateOfOperation" : "Дата операции",
+ "u_LineOfOperation"  : "Операция",
+ "u_DestinationStation" : "Станция назначения",
+ "u_Remaining_km" : "Остаточное расстояние, км",
+ "u_DispatchPlan" : "Расчетный срок доставки",
+ "u_DateSending"  :"Дата отправки"
 
 
 
