@@ -6,27 +6,21 @@ import React, {
   useMemo,
 } from "react";
 import { Button, message } from "antd";
-import { useSelector } from "react-redux";
 import { http } from "../services/http";
 import { useTranslation } from "react-i18next";
-import { aggregateDocuments } from "../utils/document";
-import moment from "moment";
 import "jspreadsheet-ce/dist/jspreadsheet.css";
 import jspreadsheet from "jspreadsheet-ce";
 import Navbar from "../components/Navbar";
 import { Oval } from "react-loader-spinner";
+import { formatData } from "../utils/document";
 
 const TrackingList = () => {
-  const employeId = useSelector((state) => state.main.employeeId);
-
   const { t } = useTranslation();
   const spreadsheetRef = useRef(null);
   const jspreadsheetInstanceRef = useRef(null);
 
   const [fdata, setFData] = useState([]);
   const [loading, setLoading] = useState(true);
-  const [currentPage, setCurrentPage] = useState(1);
-  const [hasMoreData, setHasMoreData] = useState(false);
   const [isEditable, setIsEditable] = useState(false);
   const [saving, setSaving] = useState(false);
 
@@ -36,50 +30,25 @@ const TrackingList = () => {
       { type: "text", title: t("date"), width: 250 },
       { type: "text", title: t("whs"), width: 250 },
       { type: "text", title: t("name"), width: 250 },
-      { type: "text", title: t("status"), width: 100 }, // Added status column
+      { type: "text", title: t("status"), width: 100 },
     ],
     [t],
   );
 
-  const fetchData = useCallback(
-    async (page) => {
-      try {
-        setLoading(true);
-        const { data } = await http.get(
-          `api/meningsotuvlarim?ownerCode=${employeId}&pageToken=${page}`,
-        );
-        const formattedData = aggregateDocuments(data);
-        const maxsulotLengths = formattedData.map(
-          (entry) => entry.maxsulot && entry.maxsulot.length,
-        );
-        const totalMaxsulotLength = maxsulotLengths.reduce(
-          (sum, length) => sum + (length || 0),
-          0,
-        );
-        const hasMore = totalMaxsulotLength === 10;
-        setFData(formattedData);
-        setHasMoreData(hasMore);
-      } catch (error) {
-        console.error("Error fetching data:", error);
-        message.error(t("Error fetching data"));
-      } finally {
-        setLoading(false);
-      }
-    },
-    [employeId, t],
-  );
-
-  const handleNextPage = () => {
-    if (hasMoreData) {
-      setCurrentPage((prevPage) => prevPage + 1);
+  const fetchData = useCallback(async () => {
+    try {
+      setLoading(true);
+      const { data } = await http.get(`api/trackings`);
+      const formattedData = formatData(data);
+      console.log(formattedData);
+      setFData(formattedData);
+    } catch (error) {
+      console.error("Error fetching data:", error);
+      message.error(t("Error fetching data"));
+    } finally {
+      setLoading(false);
     }
-  };
-
-  const handlePreviousPage = () => {
-    if (currentPage > 1) {
-      setCurrentPage((prevPage) => prevPage - 1);
-    }
-  };
+  }, [t]);
 
   const toggleEdit = () => {
     setIsEditable((prevEditable) => !prevEditable);
@@ -112,40 +81,55 @@ const TrackingList = () => {
   const saveUpdatedData = async (data) => {
     setSaving(true);
     const newFData = [...fdata];
+
+    const mapRowToPatchData = (row) => {
+      return {
+        docNum: row[0],
+        docEntry: row[1],
+        cardCode: row[2],
+        cardName: row[3],
+        u_numberOfCntr: row[4],
+        u_China_platform: row[5],
+        u_numberPlatformKzx: row[6],
+        u_StationOfOperationRailway: row[7],
+        u_DateOfOperation: row[8],
+        u_LineOfOperation: row[9],
+        u_DestinationStation: row[10],
+        u_Remaining_km: row[11],
+        u_DispatchPlan: row[12],
+        u_DateSending: row[13],
+      };
+    };
+
     for (const row of data) {
+      const patchData = mapRowToPatchData(row);
+
       try {
-        const response = await http.post("api/saveData", { data: row });
+        const response = await http.patch("api/trackings", patchData);
         console.log("Save response:", response.data);
-        const rowIndex = newFData.findIndex((item) => item.id === row.id);
-        if (rowIndex > -1) {
-          newFData[rowIndex] = { ...newFData[rowIndex], status: '✅' }; // Update the data with the saved row and status
-        }
         message.success(t("Data saved successfully"));
       } catch (error) {
         console.error("Error saving data:", error);
-        const rowIndex = newFData.findIndex((item) => item.id === row.id);
-        if (rowIndex > -1) {
-          newFData[rowIndex] = { ...newFData[rowIndex], status: '🚫' }; // Update the data with error status
-        }
         message.error(t("Error saving data"));
       }
-      setFData([...newFData]); // Update state with all the data
     }
+
+    setFData([...newFData]);
     setSaving(false);
   };
 
   useEffect(() => {
-    fetchData(currentPage);
-  }, [fetchData, currentPage]);
+    fetchData();
+  }, [fetchData]);
 
   useEffect(() => {
     const tableData = fdata.map((item) => ({
       ...item,
-      maxsulot: item.maxsulot ? item.maxsulot.join(", ") : "",
-      sana: item.sana
-        ? moment(item.sana, "DD.MM.YYYY").format("DD.MM.YYYY")
-        : "",
-      status: item.status || "", // Include status in table data
+      // maxsulot: item.maxsulot ? item.maxsulot.join(", ") : "",
+      // sana: item.sana
+      //   ? moment(item.sana, "DD.MM.YYYY").format("DD.MM.YYYY")
+      //   : "",
+      // status: item.status || "",
     }));
 
     if (spreadsheetRef.current && tableData.length > 0) {
@@ -188,27 +172,6 @@ const TrackingList = () => {
         </h1>
         <div className="mt-10 w-full border-[1px] border-[#E8E8E8] sm:mt-14"></div>
         <div className="ml-4 mt-6 sm:ml-10 sm:mt-10">
-          <div className="mb-4 flex flex-col justify-between sm:flex-row">
-            <div className="font-nunitto font-bold">
-              {t("page")} : {currentPage}
-            </div>
-            <div className="mt-2 flex gap-2 sm:mr-10">
-              <Button
-                onClick={handlePreviousPage}
-                disabled={currentPage === 1}
-                className="h-[40px] w-[100px] rounded-2xl bg-gray-300 text-gray-700 disabled:bg-gray-200 disabled:text-gray-400 sm:w-[100px]"
-              >
-                {t("previous")}
-              </Button>
-              <Button
-                onClick={handleNextPage}
-                disabled={!hasMoreData}
-                className="h-[40px] w-[100px] rounded-2xl bg-[#0A4D68] text-white disabled:bg-gray-200 disabled:text-gray-400 sm:w-[100px]"
-              >
-                {t("next")}
-              </Button>
-            </div>
-          </div>
           <Button
             onClick={toggleEdit}
             className={`mb-4 ${isEditable ? "bg-green-500" : "bg-blue-500"} text-white hover:bg-green-700`}

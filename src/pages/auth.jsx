@@ -33,21 +33,17 @@ const Auth = () => {
           accessToken: token,
           firstName,
           lastName,
-          jobTitle: role,
           employeeId,
+          jobTitle,
           salesPersonCode,
         } = data;
         const user = `${firstName} ${lastName}`;
         dispatch(login(user));
         dispatch(setToken(token));
-        dispatch(setRole(role));
         dispatch(setEmployeeId(employeeId));
+        dispatch(setRole(jobTitle));
         dispatch(setSalesPersonCode(salesPersonCode));
-        const prevLocation = sessionStorage.getItem("prevLocation");
-        navigate(prevLocation || "/tracking-list");
-        const extractedData = prevLocation.slice(1);
-        console.log(extractedData);
-        dispatch(setSelectedPath(extractedData || "tracking-list"))
+        navigate("/tracking-list");
       }
     } catch (err) {
       console.log(err);
@@ -75,7 +71,6 @@ const Auth = () => {
       } = data;
       const user = `${firstName} ${lastName}`;
 
-      if (role === "Whsmanager") {
         session.set(token);
         dispatch(login(user));
         dispatch(setToken(token));
@@ -87,9 +82,6 @@ const Auth = () => {
         navigate("/tracking-list");
         dispatch(setSelectedPath("/tracking-list"))
 
-      } else {
-        message.error(t("accessDenied"));
-      }
     } catch (err) {
       message.error(t("userNotFound"));
     } finally {
