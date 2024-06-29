@@ -26,13 +26,22 @@ const TrackingList = () => {
 
   const columnDefinitions = useMemo(
     () => [
-      { type: "text", title: t("item"), width: 250 },
-      { type: "text", title: t("date"), width: 250 },
-      { type: "text", title: t("whs"), width: 250 },
-      { type: "text", title: t("name"), width: 250 },
-      { type: "text", title: t("status"), width: 100 },
+      { type: "text", title: t("item"), width: 250, editable: true },
+      { type: "hidden", title: t("docEntry"), width: 250, editable: false },
+      { type: "hidden", title: t("cardCode"), width: 250, editable: false },
+      { type: "text", title: t("name"), width: 250, editable: false },
+      { type: "text", title: t("status"), width: 100, editable: isEditable },
+      { type: "text", title: t("anotherStatus1"), width: 100, editable: isEditable },
+      { type: "text", title: t("anotherStatus2"), width: 100, editable: isEditable },
+      { type: "text", title: t("anotherStatus3"), width: 100, editable: isEditable },
+      { type: "text", title: t("anotherStatus4"), width: 100, editable: isEditable },
+      { type: "text", title: t("anotherStatus5"), width: 100, editable: isEditable },
+      { type: "text", title: t("anotherStatus6"), width: 100, editable: isEditable },
+      { type: "text", title: t("anotherStatus7"), width: 100, editable: isEditable },
+      { type: "text", title: t("anotherStatus8"), width: 100, editable: isEditable },
+      { type: "text", title: t("anotherStatus9"), width: 100, editable: isEditable },
     ],
-    [t],
+    [t, isEditable]
   );
 
   const fetchData = useCallback(async () => {
@@ -85,8 +94,8 @@ const TrackingList = () => {
     const mapRowToPatchData = (row) => {
       return {
         docNum: row[0],
-        docEntry: row[1],
-        cardCode: row[2],
+        docEntry: row[1], // Assuming hidden fields are at the end
+        cardCode: row[2], // Assuming hidden fields are at the end
         cardName: row[3],
         u_numberOfCntr: row[4],
         u_China_platform: row[5],
@@ -103,7 +112,7 @@ const TrackingList = () => {
 
     for (const row of data) {
       const patchData = mapRowToPatchData(row);
-
+      console.log(row);
       try {
         const response = await http.patch("api/trackings", patchData);
         console.log("Save response:", response.data);
@@ -125,11 +134,6 @@ const TrackingList = () => {
   useEffect(() => {
     const tableData = fdata.map((item) => ({
       ...item,
-      // maxsulot: item.maxsulot ? item.maxsulot.join(", ") : "",
-      // sana: item.sana
-      //   ? moment(item.sana, "DD.MM.YYYY").format("DD.MM.YYYY")
-      //   : "",
-      // status: item.status || "",
     }));
 
     if (spreadsheetRef.current && tableData.length > 0) {
@@ -139,11 +143,10 @@ const TrackingList = () => {
 
       const jSpreadsheetOptions = {
         data: tableData.map((row) =>
-          Object.values(row).map((value) => value || ""),
+          Object.values(row).map((value) => value || "")
         ),
         columns: columnDefinitions,
         minDimensions: [columnDefinitions.length, tableData.length],
-        editable: isEditable,
         allowInsertRow: false,
         allowManualInsertRow: false,
         allowInsertColumn: false,
@@ -154,7 +157,7 @@ const TrackingList = () => {
 
       jspreadsheetInstanceRef.current = jspreadsheet(
         spreadsheetRef.current,
-        jSpreadsheetOptions,
+        jSpreadsheetOptions
       );
     }
   }, [columnDefinitions, fdata, isEditable, t]);
